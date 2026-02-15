@@ -16,7 +16,7 @@ export class Board {
 
         for (let x = 0; x < this.size; x++) {
             for (let z = 0; z < this.size; z++) {
-                const material = (x + z) % 2 === 0 ? lightMaterial : darkMaterial;
+                const material = ((x + z) % 2 === 0 ? lightMaterial : darkMaterial).clone();
                 const square = new THREE.Mesh(geometry, material);
                 
                 // Centrar el tablero en (0,0,0)
