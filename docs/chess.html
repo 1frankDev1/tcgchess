@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Chess - Supabase</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="app">
+        <!-- Game UI -->
+        <div id="game-ui">
+            <div id="hud">
+                <div class="player-info">
+                    <span id="current-turn-display">Turno: Blanco</span>
+                </div>
+                <div class="controls">
+                    <a href="personajes.html" class="button">Personajes</a>
+                    <a href="admin.html" class="button">Admin</a>
+                    <button id="btn-reset">Reiniciar Partida</button>
+                    <button id="btn-logout-main">Cerrar Sesión</button>
+                </div>
+            </div>
+            <div id="loading-overlay" class="overlay hidden">
+                <div class="loader">Cargando assets...</div>
+            </div>
+        </div>
+
+        <!-- Canvas Container -->
+        <div id="canvas-container"></div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+    <div id="main-login" class="overlay hidden">
+        <div class="auth-box">
+            <h2>Bienvenido a Ajedrez 3D</h2>
+            <p>Inicia sesión para usar tus personajes personalizados</p>
+            <input type="text" id="main-username" placeholder="Username">
+            <input type="password" id="main-password" placeholder="Password">
+            <button id="btn-login-main">Entrar</button>
+            <div id="main-login-error" class="error"></div>
+        </div>
+    </div>
+</body>
+</html>

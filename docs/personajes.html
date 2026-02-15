@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Selección de Personajes - Chess</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="app" class="selection-panel">
+        <header>
+            <h1>Elige tus Personajes</h1>
+            <nav>
+                <a href="index.html" class="button">Volver al Juego</a>
+                <button id="btn-logout-selection">Cerrar Sesión</button>
+            </nav>
+        </header>
+
+        <main id="selection-content">
+            <div id="user-login" class="overlay">
+                <div class="auth-box">
+                    <h2>Identifícate para guardar tus personajes</h2>
+                    <input type="text" id="user-username" placeholder="Username">
+                    <input type="password" id="user-password" placeholder="Password">
+                    <button id="btn-login-user">Entrar</button>
+                    <div id="user-login-error" class="error"></div>
+                </div>
+            </div>
+
+            <div id="selection-dashboard" class="hidden">
+                <div class="selection-grid">
+                    <div class="controls-panel">
+                        <div id="piece-categories" class="categories-container">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                        <button id="btn-save-selections" class="btn-primary">Guardar Configuración</button>
+                    </div>
+
+                    <div class="viewer-panel">
+                        <h3>Vista Previa 3D</h3>
+                        <div id="model-viewer"></div>
+                        <div id="selected-info">
+                            <p>Selecciona un personaje para verlo en 3D</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="js/personajes.js"></script>
+</body>
+</html>
