@@ -76,14 +76,35 @@ export class PieceManager {
                     url,
                     (gltf) => {
                         const model = gltf.scene;
+
+                        // Centrar y escalar el modelo
+                        const box = new THREE.Box3().setFromObject(model);
+                        const size = box.getSize(new THREE.Vector3());
+                        const center = box.getCenter(new THREE.Vector3());
+
+                        // Reposicionar para que el centro esté en (0,0,0) y la base en y=0
+                        model.position.x -= center.x;
+                        model.position.y -= box.min.y;
+                        model.position.z -= center.z;
+
+                        // Escalar para que quepa en un cuadro (aprox 0.8 unidades)
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const scale = 0.8 / maxDim;
+                        model.scale.set(scale, scale, scale);
+
                         model.traverse((node) => {
                             if (node.isMesh) {
                                 node.castShadow = true;
                                 node.receiveShadow = true;
                             }
                         });
-                        this.models.set(`${type}_${color}`, model);
-                        resolve(model);
+
+                        // Envolver en un Group para mantener transformaciones relativas
+                        const wrapper = new THREE.Group();
+                        wrapper.add(model);
+
+                        this.models.set(`${type}_${color}`, wrapper);
+                        resolve(wrapper);
                     },
                     undefined,
                     (error) => {

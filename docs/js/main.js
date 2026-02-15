@@ -95,6 +95,9 @@ class Main {
         }
 
         if (this.sceneManager) {
+            if (this.sceneManager.controls) {
+                this.sceneManager.controls.update();
+            }
             this.sceneManager.render();
         }
         
