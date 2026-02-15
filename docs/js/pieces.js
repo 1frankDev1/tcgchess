@@ -1,11 +1,31 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/DRACOLoader.js';
 import { getModelUrl, getUserSelections, getCurrentUser } from './supabase.js';
+
+// Intentar importar Meshopt si está disponible, o usar un CDN
+const MESHOPT_DECODER_URL = 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.20.0/meshopt_decoder.js';
 
 export class PieceManager {
     constructor(scene) {
         this.scene = scene;
+
+        // Configurar el cargador con soporte para Draco y Meshopt
         this.loader = new GLTFLoader();
+
+        const dracoLoader = new DRACOLoader();
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        this.loader.setDRACOLoader(dracoLoader);
+
+        // Soporte para Meshopt (algunos modelos lo usan para optimización)
+        if (typeof window !== 'undefined') {
+            import(MESHOPT_DECODER_URL).then(module => {
+                if (module.MeshoptDecoder) {
+                    this.loader.setMeshoptDecoder(module.MeshoptDecoder);
+                }
+            }).catch(err => console.debug("Meshopt decoder not loaded, optional."));
+        }
+
         this.models = new Map(); // Cache for models
         this.pieces = []; // Active pieces in the scene
         this.typeMapping = {
@@ -77,25 +97,39 @@ export class PieceManager {
                     (gltf) => {
                         const model = gltf.scene;
 
+                        // Asegurar que las matrices estén actualizadas
+                        model.updateMatrixWorld(true);
+
                         // Centrar y escalar el modelo
                         const box = new THREE.Box3().setFromObject(model);
                         const size = box.getSize(new THREE.Vector3());
                         const center = box.getCenter(new THREE.Vector3());
 
-                        // Reposicionar para que el centro esté en (0,0,0) y la base en y=0
-                        model.position.x -= center.x;
-                        model.position.y -= box.min.y;
-                        model.position.z -= center.z;
-
-                        // Escalar para que quepa en un cuadro (aprox 0.8 unidades)
+                        // Validar dimensiones para evitar división por cero o infinitos
                         const maxDim = Math.max(size.x, size.y, size.z);
-                        const scale = 0.8 / maxDim;
-                        model.scale.set(scale, scale, scale);
+                        if (maxDim > 0) {
+                            // Reposicionar para que el centro esté en (0,0,0) y la base en y=0
+                            model.position.x -= center.x;
+                            model.position.y -= box.min.y;
+                            model.position.z -= center.z;
+
+                            // Escalar para que quepa en un cuadro (aprox 0.8 unidades)
+                            const scale = 0.8 / maxDim;
+                            model.scale.set(scale, scale, scale);
+                        } else {
+                            console.warn(`Model ${path} has zero size, skipping auto-scaling.`);
+                        }
 
                         model.traverse((node) => {
                             if (node.isMesh) {
                                 node.castShadow = true;
                                 node.receiveShadow = true;
+
+                                // Asegurar que el material sea visible y reaccione a la luz
+                                if (node.material) {
+                                    node.material.side = THREE.DoubleSide;
+                                    node.material.needsUpdate = true;
+                                }
                             }
                         });
 
@@ -104,6 +138,7 @@ export class PieceManager {
                         wrapper.add(model);
 
                         this.models.set(`${type}_${color}`, wrapper);
+                        console.log(`Model loaded successfully: ${path}`);
                         resolve(wrapper);
                     },
                     undefined,
