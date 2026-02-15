@@ -455,6 +455,9 @@ body {
 .tile-yellow { background-color: #fff5be; }
 .tile-orange { background-color: #ffe4cc; }
 .tile-green { background-color: #e2ffd5; }
+.tile-red { background-color: #ffdce0; }
+.tile-cyan { background-color: #d1fcf7; }
+.tile-indigo { background-color: #d5d8ff; }
 
 .admin-nav {
     display: none; /* Replaced by tile-grid */
@@ -1978,4 +1981,109 @@ th {
     padding: 8px 12px;
     border-radius: 6px;
     width: 100%;
+}
+
+/* Bento Grid Selection */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.bento-item {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bento-item:hover {
+    transform: scale(1.05);
+    border-color: var(--primary-color);
+    box-shadow: 0 10px 30px rgba(0, 210, 255, 0.2);
+}
+
+.bento-item i {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+}
+
+.bento-item span {
+    font-weight: 700;
+    font-size: 1.2rem;
+    color: white;
+}
+
+.characters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.character-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.character-card.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+}
+
+.character-card model-viewer {
+    width: 100%;
+    height: 200px;
+    background: #000;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.character-card h3 {
+    margin: 0 0 10px;
+    color: white;
+}
+
+.selection-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.global-actions {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.hidden {
+    display: none !important;
+}
+
+@media (max-width: 640px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+    }
 }
