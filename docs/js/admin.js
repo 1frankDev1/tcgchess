@@ -1048,9 +1048,11 @@ function showAuthenticatedContent() {
     if (currentUser) {
         if (currentUser.role === 'admin') {
             $('#btn-users-panel').show();
+            $('#btn-admin-chess').show();
             $('#admin-upload-container').show();
         } else {
             $('#btn-users-panel').hide();
+            $('#btn-admin-chess').hide();
             $('#admin-upload-container').hide();
         }
     }

@@ -35,23 +35,45 @@
                     <button class="tab-btn" data-tab="opponent">Personajes del Contrincante (Negras)</button>
                 </div>
 
-                <div class="selection-grid">
-                    <div class="controls-panel">
-                        <div id="piece-categories" class="categories-container">
-                            <!-- Se llenará dinámicamente -->
-                        </div>
-                        <button id="btn-save-selections" class="btn-primary">Guardar Configuración</button>
+                <div class="bento-grid" id="bento-categories">
+                    <div class="bento-item" data-type="Rey">
+                        <i class="fas fa-chess-king"></i>
+                        <span>Rey</span>
                     </div>
+                    <div class="bento-item" data-type="Reina">
+                        <i class="fas fa-chess-queen"></i>
+                        <span>Reina</span>
+                    </div>
+                    <div class="bento-item" data-type="Torre">
+                        <i class="fas fa-chess-rook"></i>
+                        <span>Torre</span>
+                    </div>
+                    <div class="bento-item" data-type="Alfil">
+                        <i class="fas fa-chess-bishop"></i>
+                        <span>Alfil</span>
+                    </div>
+                    <div class="bento-item" data-type="Caballo">
+                        <i class="fas fa-chess-knight"></i>
+                        <span>Caballo</span>
+                    </div>
+                    <div class="bento-item" data-type="Peón">
+                        <i class="fas fa-chess-pawn"></i>
+                        <span>Peón</span>
+                    </div>
+                </div>
 
-                    <div class="viewer-panel">
-                        <h3>Vista Previa 3D</h3>
-                        <div id="model-viewer-container" style="width: 100%; height: 400px; background: #222; border-radius: 8px;">
-                            <model-viewer id="main-model-viewer" style="width: 100%; height: 100%;" auto-rotate camera-controls></model-viewer>
-                        </div>
-                        <div id="selected-info">
-                            <p>Selecciona un personaje para verlo en 3D</p>
-                        </div>
+                <div id="character-selection-area" class="hidden">
+                    <div class="selection-header">
+                        <button id="btn-back-to-bento" class="btn-secondary"><i class="fas fa-arrow-left"></i> Volver</button>
+                        <h2 id="current-category-title">Categoría</h2>
                     </div>
+                    <div id="characters-list" class="characters-grid">
+                        <!-- Personajes con model-viewer se cargarán aquí -->
+                    </div>
+                </div>
+
+                <div class="global-actions">
+                    <button id="btn-save-selections" class="btn-primary">Guardar Todas las Selecciones</button>
                 </div>
             </div>
         </main>

@@ -1,4 +1,4 @@
-import { supabase, getModelUrl } from './supabase.js';
+import { supabase, getModelUrl, getCurrentUser } from './supabase.js';
 
 class AdminPersonajes {
     constructor() {
@@ -7,6 +7,11 @@ class AdminPersonajes {
     }
 
     async init() {
+        const user = getCurrentUser();
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'admin.html';
+            return;
+        }
         await this.loadCharacters();
         this.setupEventListeners();
     }

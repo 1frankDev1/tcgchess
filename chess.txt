@@ -1,34 +1,29 @@
--- SQL para configurar el sistema de personajes de ajedrez
--- Ejecuta esto en el SQL Editor de Supabase
+-- Tablas para el sistema de Ajedrez
 
--- Tabla para almacenar los personajes disponibles y su clasificación
+-- Clasificación de personajes (modelos GLTF)
 CREATE TABLE IF NOT EXISTS chess_characters (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
     gltf_path TEXT NOT NULL,
-    piece_type TEXT NOT NULL CHECK (piece_type IN ('Rey', 'Reina', 'Torre', 'Alfil', 'Caballo', 'Peón')),
+    piece_type TEXT NOT NULL, -- Rey, Reina, Torre, Alfil, Caballo, Peon
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Tabla para almacenar las selecciones de cada usuario
+-- Selecciones de los usuarios
 CREATE TABLE IF NOT EXISTS chess_selections (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES usuarios(id) ON DELETE CASCADE,
-    piece_type TEXT NOT NULL CHECK (piece_type IN ('Rey', 'Reina', 'Torre', 'Alfil', 'Caballo', 'Peón')),
+    piece_type TEXT NOT NULL,
     character_id UUID REFERENCES chess_characters(id) ON DELETE CASCADE,
-    is_opponent BOOLEAN DEFAULT FALSE,
+    is_opponent BOOLEAN DEFAULT FALSE, -- FALSE para blancas (jugador), TRUE para negras (contrincante)
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(user_id, piece_type, is_opponent)
 );
 
--- Habilitar RLS (opcional, ajusta según tus necesidades)
-ALTER TABLE chess_characters ENABLE ROW LEVEL SECURITY;
-ALTER TABLE chess_selections ENABLE ROW LEVEL SECURITY;
-
--- Políticas simples (Permitir lectura a todos, escritura a autenticados)
-CREATE POLICY "Allow public read on chess_characters" ON chess_characters FOR SELECT USING (true);
-CREATE POLICY "Allow authenticated insert on chess_characters" ON chess_characters FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow authenticated update on chess_characters" ON chess_characters FOR UPDATE USING (true);
-
-CREATE POLICY "Allow users to manage their own selections" ON chess_selections
-    FOR ALL USING (true); -- Simplificado para propósitos de este ejercicio
+-- Asegurar que la tabla usuarios tenga la columna role
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='usuarios' AND column_name='role') THEN
+        ALTER TABLE usuarios ADD COLUMN role TEXT DEFAULT 'user';
+    END IF;
+END $$;

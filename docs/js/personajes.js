@@ -29,20 +29,34 @@ class PersonajesSelection {
         this.btnLogin = document.getElementById('btn-login-user');
         this.btnLogout = document.getElementById('btn-logout-selection');
         this.loginError = document.getElementById('user-login-error');
-        this.categoriesContainer = document.getElementById('piece-categories');
+
+        this.bentoGrid = document.getElementById('bento-categories');
+        this.selectionArea = document.getElementById('character-selection-area');
+        this.charactersList = document.getElementById('characters-list');
+        this.categoryTitle = document.getElementById('current-category-title');
+        this.btnBack = document.getElementById('btn-back-to-bento');
         this.btnSave = document.getElementById('btn-save-selections');
-        this.modelViewer = document.getElementById('main-model-viewer');
 
         this.btnLogin.addEventListener('click', () => this.handleLogin());
         this.btnLogout.addEventListener('click', () => this.handleLogout());
         this.btnSave.addEventListener('click', () => this.saveSelections());
+        if (this.btnBack) {
+            this.btnBack.addEventListener('click', () => this.showBento());
+        }
 
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 e.target.classList.add('active');
                 this.currentTab = e.target.dataset.tab;
-                this.renderSelectionMenu();
+                this.showBento(); // Reset to bento when switching tabs
+            });
+        });
+
+        document.querySelectorAll('.bento-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const type = item.dataset.type;
+                this.showCharacters(type);
             });
         });
     }
@@ -95,67 +109,71 @@ class PersonajesSelection {
                 this.selections[target][s.piece_type] = s.character_id;
             });
 
-            this.renderSelectionMenu();
+            this.updateBentoBadges();
         } catch (error) {
             console.error('Error loading data:', error);
         }
     }
 
-    renderSelectionMenu() {
-        this.categoriesContainer.innerHTML = '';
-        const currentData = this.selections[this.currentTab];
-
-        this.pieceTypes.forEach(type => {
-            const categoryDiv = document.createElement('div');
-            categoryDiv.className = 'category-group';
-            categoryDiv.innerHTML = `<h3>${type}</h3>`;
-
-            const select = document.createElement('select');
-            select.id = `select-${type}`;
-            select.className = 'form-select';
-            select.innerHTML = `<option value="">Pieza Estándar</option>`;
-
-            const typeChars = this.characters.filter(c => c.piece_type === type);
-            typeChars.forEach(char => {
-                const option = document.createElement('option');
-                option.value = char.id;
-                option.textContent = char.name;
-
-                if (currentData[type] === char.id) {
-                    option.selected = true;
-                }
-
-                select.appendChild(option);
-            });
-
-            select.addEventListener('change', (e) => {
-                const charId = e.target.value;
-                this.selections[this.currentTab][type] = charId;
-                if (charId) {
-                    this.updatePreview(charId);
-                }
-            });
-
-            categoryDiv.appendChild(select);
-            this.categoriesContainer.appendChild(categoryDiv);
+    updateBentoBadges() {
+        const currentSelections = this.selections[this.currentTab];
+        document.querySelectorAll('.bento-item').forEach(item => {
+            const type = item.dataset.type;
+            if (currentSelections[type]) {
+                item.style.borderColor = 'var(--primary-color)';
+                item.style.background = 'rgba(0, 210, 255, 0.05)';
+            } else {
+                item.style.borderColor = 'var(--card-border)';
+                item.style.background = 'var(--card-bg)';
+            }
         });
     }
 
-    async updatePreview(charId) {
-        const char = this.characters.find(c => c.id === charId);
-        if (!char) return;
+    showBento() {
+        this.bentoGrid.classList.remove('hidden');
+        this.selectionArea.classList.add('hidden');
+        this.updateBentoBadges();
+    }
 
-        try {
-            const url = await getModelUrl(char.gltf_path);
-            this.modelViewer.src = url;
+    async showCharacters(type) {
+        this.categoryTitle.textContent = type;
+        this.bentoGrid.classList.add('hidden');
+        this.selectionArea.classList.remove('hidden');
 
-            document.getElementById('selected-info').innerHTML = `
-                <h4>${char.name}</h4>
-                <p>Clasificación: ${char.piece_type}</p>
-            `;
-        } catch (e) {
-            console.error("Error loading preview", e);
+        this.charactersList.innerHTML = '<div class="loading">Cargando personajes...</div>';
+
+        const typeChars = this.characters.filter(c => c.piece_type === type);
+        this.charactersList.innerHTML = '';
+
+        if (typeChars.length === 0) {
+            this.charactersList.innerHTML = '<p class="empty">No hay personajes configurados para esta categoría.</p>';
+            return;
         }
+
+        for (const char of typeChars) {
+            const isSelected = this.selections[this.currentTab][type] === char.id;
+            const card = document.createElement('div');
+            card.className = `character-card ${isSelected ? 'selected' : ''}`;
+
+            const modelUrl = await getModelUrl(char.gltf_path);
+
+            card.innerHTML = `
+                <model-viewer src="${modelUrl}" auto-rotate camera-controls shadow-intensity="1"></model-viewer>
+                <h3>${char.name}</h3>
+                <button class="btn btn-select-char" data-id="${char.id}">${isSelected ? 'Seleccionado' : 'Seleccionar'}</button>
+            `;
+
+            card.querySelector('.btn-select-char').addEventListener('click', (e) => {
+                this.selectCharacter(type, char.id);
+            });
+
+            this.charactersList.appendChild(card);
+        }
+    }
+
+    selectCharacter(type, charId) {
+        this.selections[this.currentTab][type] = charId;
+        this.showCharacters(type); // Refresh list to show selection
     }
 
     async saveSelections() {
@@ -166,21 +184,23 @@ class PersonajesSelection {
             const promises = [];
 
             // Save player selections
-            for (const [type, charId] of Object.entries(this.selections.player)) {
+            for (const type of this.pieceTypes) {
+                const charId = this.selections.player[type];
                 if (charId) {
                     promises.push(saveUserSelection(user.id, type, charId, false));
                 }
             }
 
             // Save opponent selections
-            for (const [type, charId] of Object.entries(this.selections.opponent)) {
+            for (const type of this.pieceTypes) {
+                const charId = this.selections.opponent[type];
                 if (charId) {
                     promises.push(saveUserSelection(user.id, type, charId, true));
                 }
             }
 
             await Promise.all(promises);
-            alert('Selecciones guardadas correctamente');
+            alert('Todas las selecciones se han guardado correctamente');
         } catch (error) {
             console.error('Error saving:', error);
             alert('Error al guardar: ' + error.message);
