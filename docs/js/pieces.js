@@ -101,21 +101,26 @@ export class PieceManager {
                         model.updateMatrixWorld(true);
 
                         // Centrar y escalar el modelo
-                        const box = new THREE.Box3().setFromObject(model);
-                        const size = box.getSize(new THREE.Vector3());
-                        const center = box.getCenter(new THREE.Vector3());
+                        // 1. Calcular dimensiones iniciales para el escalado
+                        const initialBox = new THREE.Box3().setFromObject(model);
+                        const initialSize = initialBox.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(initialSize.x, initialSize.y, initialSize.z);
 
-                        // Validar dimensiones para evitar división por cero o infinitos
-                        const maxDim = Math.max(size.x, size.y, size.z);
                         if (maxDim > 0) {
-                            // Reposicionar para que el centro esté en (0,0,0) y la base en y=0
-                            model.position.x -= center.x;
-                            model.position.y -= box.min.y;
-                            model.position.z -= center.z;
-
-                            // Escalar para que quepa en un cuadro (aprox 0.8 unidades)
+                            // 2. Escalar primero
                             const scale = 0.8 / maxDim;
                             model.scale.set(scale, scale, scale);
+
+                            // 3. Actualizar matrices para obtener la caja real escalada
+                            model.updateMatrixWorld(true);
+                            const scaledBox = new THREE.Box3().setFromObject(model);
+                            const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+
+                            // 4. Reposicionar para que el centro esté en (0,z,0) y la base esté flotando ligeramente (y=0.05)
+                            // Restamos las coordenadas actuales del centro/base para llevarlo a la posición deseada
+                            model.position.x -= scaledCenter.x;
+                            model.position.z -= scaledCenter.z;
+                            model.position.y -= scaledBox.min.y - 0.05;
                         } else {
                             console.warn(`Model ${path} has zero size, skipping auto-scaling.`);
                         }
@@ -125,9 +130,18 @@ export class PieceManager {
                                 node.castShadow = true;
                                 node.receiveShadow = true;
 
-                                // Asegurar que el material sea visible y reaccione a la luz
                                 if (node.material) {
                                     node.material.side = THREE.DoubleSide;
+
+                                    // Aplicar capas de color (tintado)
+                                    if (color === 'white') {
+                                        // Capa blanca: usar emissive para aclarar sin perder textura
+                                        node.material.emissive = new THREE.Color(0x333333);
+                                    } else {
+                                        // Capa negra: oscurecer el color base (multiplicar por 0.5)
+                                        node.material.color.multiplyScalar(0.5);
+                                    }
+
                                     node.material.needsUpdate = true;
                                 }
                             }
@@ -156,10 +170,24 @@ export class PieceManager {
     }
 
     createPlaceholder(type, color) {
-        const geometry = type === 'pawn' ? new THREE.CylinderGeometry(0.2, 0.3, 0.5) : new THREE.BoxGeometry(0.4, 0.8, 0.4);
+        const height = type === 'pawn' ? 0.5 : 0.8;
+        const geometry = type === 'pawn' ? new THREE.CylinderGeometry(0.2, 0.3, height) : new THREE.BoxGeometry(0.4, height, 0.4);
         const material = new THREE.MeshStandardMaterial({ color: color === 'white' ? 0xeeeeee : 0x333333 });
+
+        // Aplicar mismo tintado que a los modelos reales
+        if (color === 'white') {
+            material.emissive = new THREE.Color(0x333333);
+        } else {
+            material.color.multiplyScalar(0.5);
+        }
+
         const mesh = new THREE.Mesh(geometry, material);
-        this.models.set(`${type}_${color}`, mesh);
+        // Posicionar para que la base esté en y=0.05 dentro del wrapper
+        mesh.position.y = height / 2 + 0.05;
+
+        const wrapper = new THREE.Group();
+        wrapper.add(mesh);
+        this.models.set(`${type}_${color}`, wrapper);
     }
 
     createPiece(type, color, position) {
@@ -202,7 +230,13 @@ export class PieceManager {
 
     update(deltaTime) {
         const lerpSpeed = 10;
+        const rotationSpeed = 0.5; // Velocidad de rotación constante
+
         this.pieces.forEach(piece => {
+            // Rotación constante sobre su propio eje
+            piece.rotation.y += rotationSpeed * deltaTime;
+
+            // Movimiento suave hacia la posición objetivo
             if (piece.userData.targetPosition) {
                 piece.position.lerp(piece.userData.targetPosition, lerpSpeed * deltaTime);
                 if (piece.position.distanceTo(piece.userData.targetPosition) < 0.01) {
