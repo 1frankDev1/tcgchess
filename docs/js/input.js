@@ -8,6 +8,11 @@ export class InputHandler {
         this.raycaster = new THREE.Raycaster();
         this.mouse = new THREE.Vector2();
 
+        // Estado para rotación manual
+        this.isRotating = false;
+        this.lastMouseX = 0;
+        this.rotationSensitivity = 0.01;
+
         this.setupEventListeners();
     }
 
@@ -16,10 +21,19 @@ export class InputHandler {
 
         canvas.addEventListener('mousedown', (e) => this.onPointerDown(e));
         canvas.addEventListener('mousemove', (e) => this.onPointerMove(e));
+        canvas.addEventListener('mouseup', () => this.onPointerUp());
+
         canvas.addEventListener('touchstart', (e) => {
             const touch = e.touches[0];
             this.onPointerDown(touch);
         }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            this.onPointerMove(touch);
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', () => this.onPointerUp());
     }
 
     updateMousePosition(event) {
@@ -30,6 +44,14 @@ export class InputHandler {
 
     onPointerMove(event) {
         this.updateMousePosition(event);
+
+        if (this.isRotating && this.game.selectedPiece) {
+            const deltaX = event.clientX - this.lastMouseX;
+            this.game.selectedPiece.rotation.y += deltaX * this.rotationSensitivity;
+            this.lastMouseX = event.clientX;
+            return; // Evitar hover info mientras se rota
+        }
+
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
         const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children, true);
 
@@ -73,6 +95,14 @@ export class InputHandler {
 
             if (!object) return;
 
+            // Si tocamos la pieza que ya está seleccionada, iniciamos rotación
+            if (this.game.selectedPiece && object === this.game.selectedPiece) {
+                this.isRotating = true;
+                this.lastMouseX = event.clientX;
+                this.sceneManager.controls.enabled = false; // Desactivar OrbitControls
+                return;
+            }
+
             const gridX = object.userData.gridX;
             const gridZ = object.userData.gridZ;
 
@@ -87,6 +117,13 @@ export class InputHandler {
         } else {
             this.game.selectedPiece = null;
             this.board.clearHighlights();
+        }
+    }
+
+    onPointerUp() {
+        if (this.isRotating) {
+            this.isRotating = false;
+            this.sceneManager.controls.enabled = true; // Reactivar OrbitControls
         }
     }
 }

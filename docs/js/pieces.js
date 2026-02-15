@@ -131,7 +131,8 @@ export class PieceManager {
                                 node.receiveShadow = true;
 
                                 if (node.material) {
-                                    node.material.side = THREE.DoubleSide;
+                                    // Cambiar a FrontSide para mejorar rendimiento (DoubleSide es más costoso)
+                                    node.material.side = THREE.FrontSide;
 
                                     // Aplicar capas de color (tintado)
                                     if (color === 'white') {
@@ -230,12 +231,8 @@ export class PieceManager {
 
     update(deltaTime) {
         const lerpSpeed = 10;
-        const rotationSpeed = 0.5; // Velocidad de rotación constante
 
         this.pieces.forEach(piece => {
-            // Rotación constante sobre su propio eje
-            piece.rotation.y += rotationSpeed * deltaTime;
-
             // Movimiento suave hacia la posición objetivo
             if (piece.userData.targetPosition) {
                 piece.position.lerp(piece.userData.targetPosition, lerpSpeed * deltaTime);
