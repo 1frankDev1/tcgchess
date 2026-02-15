@@ -1,31 +1,36 @@
 export class ChessRules {
     static isValidMove(piece, toX, toZ, boardState) {
-        const fromX = piece.gridX;
-        const fromZ = piece.gridZ;
+        const fromX = parseInt(piece.gridX);
+        const fromZ = parseInt(piece.gridZ);
+        const targetX = parseInt(toX);
+        const targetZ = parseInt(toZ);
         const type = piece.type;
         const color = piece.color;
 
         // No se puede mover a la misma casilla
-        if (fromX === toX && fromZ === toZ) return false;
+        if (fromX === targetX && fromZ === targetZ) return false;
+
+        // Fuera del tablero
+        if (targetX < 0 || targetX > 7 || targetZ < 0 || targetZ > 7) return false;
 
         // No se puede capturar una pieza del mismo color
-        const targetPiece = boardState[toX] && boardState[toX][toZ];
+        const targetPiece = boardState[targetX] && boardState[targetX][targetZ];
         if (targetPiece && targetPiece.color === color) return false;
 
         switch (type) {
             case 'pawn':
-                return this.isValidPawnMove(fromX, fromZ, toX, toZ, color, boardState);
+                return this.isValidPawnMove(fromX, fromZ, targetX, targetZ, color, boardState);
             case 'rook':
-                return this.isValidRookMove(fromX, fromZ, toX, toZ, boardState);
+                return this.isValidRookMove(fromX, fromZ, targetX, targetZ, boardState);
             case 'knight':
-                return this.isValidKnightMove(fromX, fromZ, toX, toZ);
+                return this.isValidKnightMove(fromX, fromZ, targetX, targetZ);
             case 'bishop':
-                return this.isValidBishopMove(fromX, fromZ, toX, toZ, boardState);
+                return this.isValidBishopMove(fromX, fromZ, targetX, targetZ, boardState);
             case 'queen':
-                return this.isValidRookMove(fromX, fromZ, toX, toZ, boardState) || 
-                       this.isValidBishopMove(fromX, fromZ, toX, toZ, boardState);
+                return this.isValidRookMove(fromX, fromZ, targetX, targetZ, boardState) ||
+                       this.isValidBishopMove(fromX, fromZ, targetX, targetZ, boardState);
             case 'king':
-                return this.isValidKingMove(fromX, fromZ, toX, toZ);
+                return this.isValidKingMove(fromX, fromZ, targetX, targetZ);
             default:
                 return false;
         }
@@ -37,20 +42,20 @@ export class ChessRules {
         const diffX = toX - fromX;
         const diffZ = toZ - fromZ;
 
-        // Movimiento simple hacia adelante
-        if (diffX === direction && diffZ === 0 && !boardState[toX]?.[toZ]) {
-            return true;
+        // Movimiento simple hacia adelante (1 casilla)
+        if (diffX === direction && diffZ === 0) {
+            return !boardState[toX]?.[toZ];
         }
 
-        // Doble movimiento inicial
-        if (fromX === startRow && diffX === 2 * direction && diffZ === 0 && 
-            !boardState[fromX + direction]?.[fromZ] && !boardState[toX]?.[toZ]) {
-            return true;
+        // Doble movimiento inicial (2 casillas)
+        if (fromX === startRow && diffX === 2 * direction && diffZ === 0) {
+            const pathBlocked = boardState[fromX + direction]?.[fromZ] || boardState[toX]?.[toZ];
+            return !pathBlocked;
         }
 
         // Captura diagonal
-        if (diffX === direction && Math.abs(diffZ) === 1 && boardState[toX]?.[toZ]) {
-            return true;
+        if (diffX === direction && Math.abs(diffZ) === 1) {
+            return !!boardState[toX]?.[toZ];
         }
 
         return false;
@@ -132,8 +137,8 @@ export class ChessRules {
     }
 
     static wouldBeInCheck(piece, toX, toZ, boardState) {
-        const fromX = piece.gridX;
-        const fromZ = piece.gridZ;
+        const fromX = parseInt(piece.gridX);
+        const fromZ = parseInt(piece.gridZ);
         const color = piece.color;
 
         // Clonar el estado del tablero y simular el movimiento

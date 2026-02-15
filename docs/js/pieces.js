@@ -36,14 +36,17 @@ export class PieceManager {
         const promises = [];
         for (const type of pieceTypes) {
             const mappedType = this.typeMapping[type];
-            const selection = selections.find(s => s.piece_type === mappedType);
 
             for (const color of colors) {
+                const isOpponent = color === 'black';
+                const selection = selections.find(s => s.piece_type === mappedType && s.is_opponent === isOpponent);
+
                 let path, charName;
                 if (selection && selection.chess_characters) {
                     path = selection.chess_characters.gltf_path;
                     charName = selection.chess_characters.name;
                 } else {
+                    // Fallback to default models if no selection
                     path = `${type}_${color}.glb`;
                     charName = type.charAt(0).toUpperCase() + type.slice(1);
                 }
