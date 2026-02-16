@@ -2582,7 +2582,7 @@ th {
 
 /* --- New Chess Modern UI --- */
 .chess-body {
-    background: #000;
+    background: radial-gradient(circle at center, #10121a 0%, #050508 100%);
     overflow: hidden;
 }
 
@@ -2599,15 +2599,21 @@ th {
 .chess-hud-bento .bento-item {
     position: absolute;
     pointer-events: auto;
-    background: rgba(10, 10, 15, 0.85);
+    background: rgba(20, 22, 30, 0.8);
     backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
     padding: 12px 18px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s ease;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.chess-hud-bento .bento-item:hover {
+    background: rgba(30, 32, 45, 0.9);
+    border-color: rgba(0, 210, 255, 0.3);
+    transform: translateY(-5px);
 }
 
 .player-info {
@@ -2654,15 +2660,20 @@ th {
 
 .turn-indicator {
     top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
     justify-content: center;
     align-items: center;
-    background: rgba(0, 210, 255, 0.25) !important;
-    border: 1px solid rgba(0, 210, 255, 0.5) !important;
+    background: rgba(0, 210, 255, 0.15) !important;
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(0, 210, 255, 0.3) !important;
     min-width: 180px;
     padding: 15px 25px !important;
     z-index: 1100;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 210, 255, 0.1);
 }
 
 #turn-badge {
@@ -2685,8 +2696,10 @@ th {
 
 .game-controls {
     bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
+    width: fit-content;
+    margin: 0 auto;
 }
 
 .controls-grid {
@@ -2710,6 +2723,8 @@ th {
     font-weight: 600;
     transition: all 0.2s;
     font-size: 0.8rem;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .ctrl-btn:hover {
@@ -2723,38 +2738,67 @@ th {
 
 /* Modal & Popups */
 .glass-morphism {
-    background: rgba(20, 20, 25, 0.85);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    background: rgba(20, 22, 30, 0.9);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
 }
 
 .modal-content {
-    padding: 40px;
-    border-radius: 30px;
+    padding: 50px 40px;
+    border-radius: 40px;
     text-align: center;
-    max-width: 400px;
-    width: 90%;
+    max-width: 450px;
+    width: 95%;
+    transform: scale(0.9);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.overlay:not(.hidden) .modal-content {
+    transform: scale(1);
 }
 
 #modal-title {
-    font-size: 2.2rem;
-    margin-bottom: 10px;
-    font-weight: 800;
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    font-weight: 900;
     color: #fff;
+    background: linear-gradient(135deg, #fff 0%, var(--primary-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+#modal-message {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 30px;
+    line-height: 1.6;
 }
 
 #modal-icon {
-    font-size: 4rem;
-    margin-bottom: 20px;
+    font-size: 5rem;
+    margin-bottom: 25px;
     color: var(--primary-color);
+    filter: drop-shadow(0 0 20px rgba(0, 210, 255, 0.5));
+}
+
+#game-over-modal.overlay {
+    display: flex !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s;
+}
+
+#game-over-modal.overlay:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
 }
 
 /* Responsive Chess */
 @media (max-width: 768px) {
     .player-info.white { top: 10px; left: 10px; padding: 6px 10px; }
     .player-info.black { top: 10px; right: 10px; padding: 6px 10px; }
-    .turn-indicator { top: auto; bottom: 85px; min-width: 140px; }
+    .turn-indicator { top: auto; bottom: 85px; min-width: 140px; left: 0; right: 0; margin: 0 auto; transform: none; }
     .game-controls { bottom: 15px; }
 }
 

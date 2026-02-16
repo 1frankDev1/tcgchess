@@ -34,62 +34,88 @@ class AdminPersonajes {
             return;
         }
 
-        this.renderTable(spirits, chessChars);
+        this.renderCharacters(spirits, chessChars);
     }
 
-    async renderTable(spirits, chessChars) {
-        const tbody = document.getElementById('storage-files-list');
-        tbody.innerHTML = '';
+    async renderCharacters(spirits, chessChars) {
+        const grid = document.getElementById('characters-grid');
+        grid.innerHTML = '';
 
         for (const spirit of spirits) {
             const chessChar = chessChars.find(c => c.gltf_path === spirit.gltf_url || c.name === spirit.name);
 
-            const tr = document.createElement('tr');
+            const card = document.createElement('div');
+            card.className = 'spirit-card bento-item';
+            card.style.padding = '20px';
+            card.style.gap = '15px';
 
             // Preview
-            const tdPreview = document.createElement('td');
-            tdPreview.innerHTML = `
-                <model-viewer src="${spirit.gltf_url}" style="width: 80px; height: 80px;" auto-rotate camera-controls></model-viewer>
-            `;
+            const preview = document.createElement('model-viewer');
+            preview.src = spirit.gltf_url;
+            preview.style.width = '100%';
+            preview.style.height = '180px';
+            preview.style.background = 'rgba(0,0,0,0.3)';
+            preview.style.borderRadius = '15px';
+            preview.setAttribute('auto-rotate', '');
+            preview.setAttribute('camera-controls', '');
 
-            // File Path
-            const tdFile = document.createElement('td');
-            tdFile.textContent = spirit.gltf_url.split('/').pop();
-            tdFile.title = spirit.gltf_url;
+            // Info Container
+            const info = document.createElement('div');
+            info.style.width = '100%';
+            info.style.display = 'flex';
+            info.style.flexDirection = 'column';
+            info.style.gap = '10px';
 
-            // Name
-            const tdName = document.createElement('td');
+            // Name Input
+            const labelName = document.createElement('label');
+            labelName.textContent = 'Nombre:';
+            labelName.style.fontSize = '0.75rem';
+            labelName.style.color = 'var(--primary-color)';
+            labelName.style.fontWeight = 'bold';
+
             const inputName = document.createElement('input');
             inputName.type = 'text';
             inputName.value = chessChar ? chessChar.name : spirit.name;
             inputName.className = 'form-input';
-            tdName.appendChild(inputName);
+            inputName.style.background = 'rgba(255,255,255,0.05)';
+            inputName.style.border = '1px solid rgba(255,255,255,0.1)';
+            inputName.style.color = '#fff';
 
-            // Classification
-            const tdClass = document.createElement('td');
+            // Classification Select
+            const labelClass = document.createElement('label');
+            labelClass.textContent = 'Clasificación:';
+            labelClass.style.fontSize = '0.75rem';
+            labelClass.style.color = 'var(--primary-color)';
+            labelClass.style.fontWeight = 'bold';
+
             const select = document.createElement('select');
             select.className = 'form-select';
+            select.style.background = 'rgba(255,255,255,0.05)';
+            select.style.border = '1px solid rgba(255,255,255,0.1)';
+            select.style.color = '#fff';
             select.innerHTML = '<option value="">Sin asignar</option>';
             this.classificationOptions.forEach(opt => {
                 const selected = chessChar && chessChar.piece_type === opt ? 'selected' : '';
                 select.innerHTML += `<option value="${opt}" ${selected}>${opt}</option>`;
             });
-            tdClass.appendChild(select);
 
-            // Actions
-            const tdActions = document.createElement('td');
+            // Action Button
             const btnSave = document.createElement('button');
-            btnSave.className = 'btn btn-sm';
-            btnSave.textContent = 'Guardar';
+            btnSave.className = 'ctrl-btn';
+            btnSave.style.width = '100%';
+            btnSave.style.justifyContent = 'center';
+            btnSave.innerHTML = '<i class="fas fa-save"></i> <span>Guardar</span>';
             btnSave.onclick = () => this.saveCharacter(spirit, inputName.value, select.value, chessChar?.id);
-            tdActions.appendChild(btnSave);
 
-            tr.appendChild(tdPreview);
-            tr.appendChild(tdFile);
-            tr.appendChild(tdName);
-            tr.appendChild(tdClass);
-            tr.appendChild(tdActions);
-            tbody.appendChild(tr);
+            info.appendChild(labelName);
+            info.appendChild(inputName);
+            info.appendChild(labelClass);
+            info.appendChild(select);
+            info.appendChild(btnSave);
+
+            card.appendChild(preview);
+            card.appendChild(info);
+            grid.appendChild(card);
         }
     }
 

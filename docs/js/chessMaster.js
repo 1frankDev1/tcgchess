@@ -418,6 +418,7 @@ class Game {
         this.boardState = {};
         this.capturedWhite = [];
         this.capturedBlack = [];
+        this.gameOver = false;
         this.initPieceInfoUI();
         this.pieceIcons = {
             'white_pawn': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
@@ -454,6 +455,7 @@ class Game {
         this.turn = 'white';
         this.capturedWhite = [];
         this.capturedBlack = [];
+        this.gameOver = false;
         this.updateCapturedUI();
         this.initBoardState();
         this.renderPieces();
@@ -487,6 +489,7 @@ class Game {
     }
 
     selectPiece(gridX, gridZ) {
+        if (this.gameOver) return false;
         const piece = this.pieceManager.getPieceAt(gridX, gridZ);
         if (piece && piece.userData.color === this.turn) {
             this.selectedPiece = piece;
@@ -511,7 +514,7 @@ class Game {
     }
 
     async moveSelectedPiece(toX, toZ) {
-        if (!this.selectedPiece) return false;
+        if (this.gameOver || !this.selectedPiece) return false;
         if (ChessRules.isValidMove(this.selectedPiece.userData, toX, toZ, this.boardState)) {
             const fromX = this.selectedPiece.userData.gridX;
             const fromZ = this.selectedPiece.userData.gridZ;
@@ -526,6 +529,7 @@ class Game {
 
                 // Si se captura el Rey, termina la partida
                 if (captured.type === 'king') {
+                    this.gameOver = true;
                     this.endGame(pieceData.color);
                 }
 
