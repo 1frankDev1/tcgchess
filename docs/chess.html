@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>3D Chess - Supabase</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script type="importmap">
     {
       "imports": {
@@ -13,24 +14,64 @@
     }
     </script>
 </head>
-<body>
+<body class="chess-body">
     <div id="app">
         <!-- Game UI -->
-        <div id="game-ui">
-            <div id="hud">
-                <div class="player-info">
-                    <span id="current-turn-display">Turno: Blanco</span>
+        <div id="game-ui" class="hidden">
+            <div id="hud" class="chess-hud-bento">
+                <div class="bento-item player-info white">
+                    <div class="player-header">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Blanco</span>
+                    </div>
+                    <div id="captured-black" class="captured-pieces">
+                        <!-- Captured black pieces icons go here -->
+                    </div>
                 </div>
-                <div class="controls">
-                    <a href="personajes.html" class="button">Personajes</a>
-                    <a href="adminPersonajes.html" class="button">Admin Personajes</a>
-                    <a href="admin.html" class="button">Admin TCG</a>
-                    <button id="btn-reset">Reiniciar Partida</button>
-                    <button id="btn-logout-main">Cerrar Sesión</button>
+
+                <div class="bento-item turn-indicator">
+                    <div id="turn-badge">
+                        <span id="current-turn-display">Turno Blanco</span>
+                    </div>
+                </div>
+
+                <div class="bento-item player-info black">
+                    <div class="player-header">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Negro</span>
+                    </div>
+                    <div id="captured-white" class="captured-pieces">
+                        <!-- Captured white pieces icons go here -->
+                    </div>
+                </div>
+
+                <div class="bento-item game-controls">
+                    <div class="controls-grid">
+                        <a href="personajes.html" class="ctrl-btn" title="Personajes">
+                            <i class="fas fa-users"></i>
+                            <span>Personajes</span>
+                        </a>
+                        <button id="btn-reset" class="ctrl-btn" title="Reiniciar">
+                            <i class="fas fa-undo"></i>
+                            <span>Reiniciar</span>
+                        </button>
+                        <a href="adminPersonajes.html" class="ctrl-btn" title="Admin">
+                            <i class="fas fa-cog"></i>
+                            <span>Admin</span>
+                        </a>
+                        <button id="btn-logout-main" class="ctrl-btn" title="Salir">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Salir</span>
+                        </button>
+                    </div>
                 </div>
             </div>
+
             <div id="loading-overlay" class="overlay hidden">
-                <div class="loader">Cargando assets...</div>
+                <div class="loader-content">
+                    <div class="spinner"></div>
+                    <div class="loader-text">Cargando Universos...</div>
+                </div>
             </div>
         </div>
 
@@ -38,14 +79,31 @@
         <div id="canvas-container"></div>
     </div>
 
+    <!-- Victory/Defeat Modal -->
+    <div id="game-over-modal" class="overlay hidden">
+        <div class="modal-content glass-morphism">
+            <div id="modal-icon"></div>
+            <h2 id="modal-title">¡Victoria!</h2>
+            <p id="modal-message">El ejército blanco ha triunfado.</p>
+            <button id="btn-play-again" class="btn-primary">Jugar de Nuevo</button>
+        </div>
+    </div>
+
     <script type="module" src="js/chessMaster.js"></script>
+
     <div id="main-login" class="overlay hidden">
-        <div class="auth-box">
+        <div class="auth-box glass-morphism">
             <h2>Bienvenido a Ajedrez 3D</h2>
             <p>Inicia sesión para usar tus personajes personalizados</p>
-            <input type="text" id="main-username" placeholder="Username">
-            <input type="password" id="main-password" placeholder="Password">
-            <button id="btn-login-main">Entrar</button>
+            <div class="input-group">
+                <input type="text" id="main-username" placeholder="Usuario">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="input-group">
+                <input type="password" id="main-password" placeholder="Contraseña">
+                <i class="fas fa-lock"></i>
+            </div>
+            <button id="btn-login-main" class="btn-primary">Entrar</button>
             <div id="main-login-error" class="error"></div>
         </div>
     </div>

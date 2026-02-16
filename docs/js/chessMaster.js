@@ -146,8 +146,9 @@ class Board {
 
     createBoard() {
         const geometry = new THREE.BoxGeometry(this.squareSize, 0.1, this.squareSize);
-        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xebecd0 });
-        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x779556 });
+        // Colores más amigables y modernos
+        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xf0d9b5 }); // Crema
+        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x48cae4 }); // Azul vibrante suave
         for (let x = 0; x < this.size; x++) {
             for (let z = 0; z < this.size; z++) {
                 const material = ((x + z) % 2 === 0 ? lightMaterial : darkMaterial).clone();
@@ -376,7 +377,23 @@ class Game {
         this.turn = 'white';
         this.selectedPiece = null;
         this.boardState = {};
+        this.capturedWhite = [];
+        this.capturedBlack = [];
         this.initPieceInfoUI();
+        this.pieceIcons = {
+            'white_pawn': 'https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg',
+            'white_rook': 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg',
+            'white_knight': 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg',
+            'white_bishop': 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg',
+            'white_queen': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg',
+            'white_king': 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg',
+            'black_pawn': 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg',
+            'black_rook': 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg',
+            'black_knight': 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg',
+            'black_bishop': 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg',
+            'black_queen': 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg',
+            'black_king': 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
+        };
     }
 
     initPieceInfoUI() {
@@ -394,7 +411,16 @@ class Game {
 
     hidePieceInfo() { this.infoDiv.classList.add('hidden'); }
 
-    async startNewGame() { this.turn = 'white'; this.initBoardState(); this.renderPieces(); }
+    async startNewGame() {
+        this.turn = 'white';
+        this.capturedWhite = [];
+        this.capturedBlack = [];
+        this.updateCapturedUI();
+        this.initBoardState();
+        this.renderPieces();
+        const modal = document.getElementById('game-over-modal');
+        if (modal) modal.classList.add('hidden');
+    }
 
     initBoardState() {
         this.boardState = {};
@@ -437,9 +463,8 @@ class Game {
         for (let x = 0; x < 8; x++) {
             for (let z = 0; z < 8; z++) {
                 if (ChessRules.isValidMove(this.selectedPiece.userData, x, z, this.boardState)) {
-                    if (!ChessRules.wouldBeInCheck(this.selectedPiece.userData, x, z, this.boardState)) {
-                        this.board.highlightSquare(x, z, 0xffff00);
-                    }
+                    // Resaltar todos los movimientos válidos según el tipo de pieza
+                    this.board.highlightSquare(x, z, 0xffff00);
                 }
             }
         }
@@ -448,11 +473,25 @@ class Game {
     async moveSelectedPiece(toX, toZ) {
         if (!this.selectedPiece) return false;
         if (ChessRules.isValidMove(this.selectedPiece.userData, toX, toZ, this.boardState)) {
-            if (ChessRules.wouldBeInCheck(this.selectedPiece.userData, toX, toZ, this.boardState)) return false;
             const fromX = this.selectedPiece.userData.gridX;
             const fromZ = this.selectedPiece.userData.gridZ;
             const pieceData = this.boardState[fromX][fromZ];
-            if (this.boardState[toX]?.[toZ]) this.pieceManager.removePieceAt(toX, toZ);
+
+            // Detectar captura
+            if (this.boardState[toX]?.[toZ]) {
+                const captured = this.boardState[toX][toZ];
+                if (captured.color === 'white') this.capturedWhite.push(captured.type);
+                else this.capturedBlack.push(captured.type);
+                this.updateCapturedUI();
+
+                // Si se captura el Rey, termina la partida
+                if (captured.type === 'king') {
+                    this.endGame(pieceData.color);
+                }
+
+                this.pieceManager.removePieceAt(toX, toZ);
+            }
+
             if (!this.boardState[toX]) this.boardState[toX] = {};
             this.boardState[toX][toZ] = pieceData;
             delete this.boardState[fromX][fromZ];
@@ -466,6 +505,35 @@ class Game {
             return true;
         }
         return false;
+    }
+
+    updateCapturedUI() {
+        const whiteContainer = document.getElementById('captured-white');
+        const blackContainer = document.getElementById('captured-black');
+        if (whiteContainer) {
+            whiteContainer.innerHTML = this.capturedWhite.map(type =>
+                `<img src="${this.pieceIcons['white_' + type]}" title="${type}">`
+            ).join('');
+        }
+        if (blackContainer) {
+            blackContainer.innerHTML = this.capturedBlack.map(type =>
+                `<img src="${this.pieceIcons['black_' + type]}" title="${type}">`
+            ).join('');
+        }
+    }
+
+    endGame(winnerColor) {
+        const modal = document.getElementById('game-over-modal');
+        const title = document.getElementById('modal-title');
+        const msg = document.getElementById('modal-message');
+        const icon = document.getElementById('modal-icon');
+
+        if (modal) {
+            title.textContent = winnerColor === 'white' ? '¡Victoria Blanca!' : '¡Victoria Negra!';
+            msg.textContent = winnerColor === 'white' ? 'El ejército de la luz ha dominado el tablero.' : 'La oscuridad ha prevalecido en la batalla.';
+            icon.innerHTML = `<i class="fas ${winnerColor === 'white' ? 'fa-crown' : 'fa-skull-crossbones'}"></i>`;
+            modal.classList.remove('hidden');
+        }
     }
 }
 
@@ -515,23 +583,48 @@ class InputHandler {
         } else this.game.hidePieceInfo();
     }
 
-    onPointerDown(event) {
+    async onPointerDown(event) {
         this.updateMousePosition(event);
         this.raycaster.setFromCamera(this.mouse, this.sceneManager.camera);
         const intersects = this.raycaster.intersectObjects(this.sceneManager.scene.children, true);
+
         if (intersects.length > 0) {
             let obj = intersects[0].object;
             while (obj && obj.userData.gridX === undefined && !obj.userData.isSquare) obj = obj.parent;
             if (!obj) return;
-            if (this.game.selectedPiece && obj === this.game.selectedPiece) {
-                this.isRotating = true; this.lastMouseX = event.clientX;
+
+            const gridX = obj.userData.gridX;
+            const gridZ = obj.userData.gridZ;
+
+            // Si hay una pieza seleccionada y clicamos sobre ella, activamos rotación
+            if (this.game.selectedPiece && gridX === this.game.selectedPiece.userData.gridX && gridZ === this.game.selectedPiece.userData.gridZ) {
+                this.isRotating = true;
+                this.lastMouseX = event.clientX;
                 this.sceneManager.controls.enabled = false;
                 return;
             }
+
             if (this.game.selectedPiece) {
-                if (!this.game.moveSelectedPiece(obj.userData.gridX, obj.userData.gridZ)) this.game.selectPiece(obj.userData.gridX, obj.userData.gridZ);
-            } else this.game.selectPiece(obj.userData.gridX, obj.userData.gridZ);
-        } else { this.game.selectedPiece = null; this.board.clearHighlights(); }
+                // Intentar mover la pieza
+                const moved = await this.game.moveSelectedPiece(gridX, gridZ);
+                if (!moved) {
+                    // Si no se pudo mover, intentar seleccionar una pieza aliada en esa posición
+                    const selected = this.game.selectPiece(gridX, gridZ);
+                    if (!selected) {
+                        // Si tampoco se pudo seleccionar (clic en vacío o enemigo inválido), deseleccionar
+                        this.game.selectedPiece = null;
+                        this.board.clearHighlights();
+                    }
+                }
+            } else {
+                // Intentar seleccionar
+                this.game.selectPiece(gridX, gridZ);
+            }
+        } else {
+            // Clic fuera del tablero deselecciona
+            this.game.selectedPiece = null;
+            this.board.clearHighlights();
+        }
     }
 
     onPointerUp() { if (this.isRotating) { this.isRotating = false; this.sceneManager.controls.enabled = true; } }
@@ -567,6 +660,12 @@ class Main {
         this.pieceManager = new PieceManager(this.sceneManager.scene);
         this.game = new Game(this.sceneManager, this.board, this.pieceManager);
         this.inputHandler = new InputHandler(this.sceneManager, this.game, this.board);
+
+        const playAgain = document.getElementById('btn-play-again');
+        if (playAgain) {
+            playAgain.addEventListener('click', () => this.game.startNewGame());
+        }
+
         this.animate();
         await this.showGame();
     }
