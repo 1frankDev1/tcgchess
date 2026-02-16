@@ -1,8 +1,15 @@
-import { supabase, getModelUrl, getCurrentUser } from './supabase.js';
+import { supabase, getCurrentUser, getUserSelections } from './supabase.js';
 
 class AdminPersonajes {
     constructor() {
         this.classificationOptions = ['Rey', 'Reina', 'Torre', 'Alfil', 'Caballo', 'Peón'];
+        this.currentSide = 'player'; // 'player' o 'opponent'
+        this.spirits = [];
+        this.chessChars = [];
+        this.selections = {
+            player: {},
+            opponent: {}
+        };
         this.init();
     }
 
@@ -12,37 +19,107 @@ class AdminPersonajes {
             window.location.href = 'admin.html';
             return;
         }
-        await this.loadCharacters();
+        await this.loadData();
         this.setupEventListeners();
     }
 
     setupEventListeners() {
-        document.getElementById('btn-sync-storage').addEventListener('click', () => this.syncFromSpirits());
+        document.getElementById('btn-sync-storage').addEventListener('click', () => this.loadData());
+        document.getElementById('btn-save-all').addEventListener('click', () => this.saveAll());
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.currentSide = btn.dataset.side;
+                this.renderGrid();
+            });
+        });
     }
 
-    async loadCharacters() {
-        const { data: spirits, error: sError } = await supabase
-            .from('spirits')
-            .select('*');
+    async loadData() {
+        try {
+            const { data: spirits, error: sError } = await supabase
+                .from('spirits')
+                .select('*');
 
-        const { data: chessChars, error: cError } = await supabase
-            .from('chess_characters')
-            .select('*');
+            const { data: chessChars, error: cError } = await supabase
+                .from('chess_characters')
+                .select('*');
 
-        if (sError || cError) {
-            console.error("Error loading data", sError, cError);
-            return;
+            const user = getCurrentUser();
+            const selections = await getUserSelections(user.id);
+
+            if (sError || cError) {
+                console.error("Error loading data", sError, cError);
+                return;
+            }
+
+            this.spirits = spirits;
+        this.chessChars = chessChars;
+
+        // Ensure every spirit has a chessChar entry (at least in memory for name/path)
+        this.spirits.forEach(s => {
+            if (!this.chessChars.find(c => c.gltf_path === s.gltf_url || c.name === s.name)) {
+                this.chessChars.push({
+                    name: s.name,
+                    gltf_path: s.gltf_url,
+                    piece_type: ""
+                });
+            }
+        });
+
+        // Reset selections state using gltf_path as key for easier local management
+        this.selections = { player: {}, opponent: {} };
+        selections.forEach(sel => {
+            const side = sel.is_opponent ? 'opponent' : 'player';
+            const char = this.chessChars.find(c => c.id === sel.character_id);
+            if (char) {
+                this.selections[side][sel.piece_type] = char.gltf_path;
+            }
+        });
+
+        this.renderGrid();
+        } catch (error) {
+            console.error("Error in loadData:", error);
+        }
+    }
+
+    handleSelectChange(spirit, newType) {
+        const side = this.currentSide;
+
+        // Clear this spirit from ANY type it might have had on this side
+        for (const [type, path] of Object.entries(this.selections[side])) {
+            if (path === spirit.gltf_url) {
+                delete this.selections[side][type];
+            }
         }
 
-        this.renderCharacters(spirits, chessChars);
+        // If assigning a new type, clear that type from ANY OTHER spirit
+        if (newType !== "") {
+            delete this.selections[side][newType];
+            this.selections[side][newType] = spirit.gltf_url;
+        }
+
+        this.renderGrid();
     }
 
-    async renderCharacters(spirits, chessChars) {
+    renderGrid() {
         const grid = document.getElementById('characters-grid');
         grid.innerHTML = '';
 
-        for (const spirit of spirits) {
-            const chessChar = chessChars.find(c => c.gltf_path === spirit.gltf_url || c.name === spirit.name);
+        for (const spirit of this.spirits) {
+            const chessChar = this.chessChars.find(c => c.gltf_path === spirit.gltf_url || c.name === spirit.name);
+            const sideSelections = this.selections[this.currentSide];
+
+            // Find if this spirit is selected for the current side
+            let selectedType = "";
+            for (const [type, path] of Object.entries(sideSelections)) {
+                if (path === spirit.gltf_url) {
+                    selectedType = type;
+                    break;
+                }
+            }
 
             const card = document.createElement('div');
             card.className = 'spirit-card bento-item';
@@ -90,28 +167,24 @@ class AdminPersonajes {
 
             const select = document.createElement('select');
             select.className = 'form-select';
-            select.style.background = 'rgba(255,255,255,0.05)';
-            select.style.border = '1px solid rgba(255,255,255,0.1)';
-            select.style.color = '#fff';
             select.innerHTML = '<option value="">Sin asignar</option>';
             this.classificationOptions.forEach(opt => {
-                const selected = chessChar && chessChar.piece_type === opt ? 'selected' : '';
+                const selected = selectedType === opt ? 'selected' : '';
                 select.innerHTML += `<option value="${opt}" ${selected}>${opt}</option>`;
             });
 
-            // Action Button
-            const btnSave = document.createElement('button');
-            btnSave.className = 'ctrl-btn';
-            btnSave.style.width = '100%';
-            btnSave.style.justifyContent = 'center';
-            btnSave.innerHTML = '<i class="fas fa-save"></i> <span>Guardar</span>';
-            btnSave.onclick = () => this.saveCharacter(spirit, inputName.value, select.value, chessChar?.id);
+            select.onchange = (e) => this.handleSelectChange(spirit, e.target.value);
+
+            // Spirit name change listener
+            inputName.onchange = (e) => {
+                if (chessChar) chessChar.name = e.target.value;
+                else spirit.name = e.target.value;
+            };
 
             info.appendChild(labelName);
             info.appendChild(inputName);
             info.appendChild(labelClass);
             info.appendChild(select);
-            info.appendChild(btnSave);
 
             card.appendChild(preview);
             card.appendChild(info);
@@ -119,43 +192,88 @@ class AdminPersonajes {
         }
     }
 
-    async saveCharacter(spirit, name, classification, existingId) {
-        if (!classification) {
-            alert("Por favor selecciona una clasificación");
-            return;
-        }
+    async saveAll() {
+        const btn = document.getElementById('btn-save-all');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Guardando...</span>';
+        btn.disabled = true;
 
-        const charData = {
-            name: name,
-            gltf_path: spirit.gltf_url,
-            piece_type: classification
-        };
+        try {
+            const user = getCurrentUser();
 
-        let error;
-        if (existingId) {
-            const result = await supabase
+            // 1. Prepare and Save chess_characters
+            const toUpsert = this.chessChars.map(c => {
+                const charData = {
+                    name: c.name,
+                    gltf_path: c.gltf_path,
+                    piece_type: c.piece_type || "Peón"
+                };
+                if (c.id) charData.id = c.id;
+
+                // Ensure piece_type matches whatever is currently selected for this spirit
+                for (const side of ['player', 'opponent']) {
+                    for (const [type, path] of Object.entries(this.selections[side])) {
+                        if (path === c.gltf_path) {
+                            charData.piece_type = type;
+                        }
+                    }
+                }
+                return charData;
+            });
+
+            const { error: upsError } = await supabase
                 .from('chess_characters')
-                .update(charData)
-                .eq('id', existingId);
-            error = result.error;
-        } else {
-            const result = await supabase
-                .from('chess_characters')
-                .insert([charData]);
-            error = result.error;
-        }
+                .upsert(toUpsert);
 
-        if (error) {
+            if (upsError) throw upsError;
+
+            // Re-fetch characters to get IDs for new ones
+            const { data: updatedChars, error: refError } = await supabase
+                .from('chess_characters')
+                .select('*');
+            if (refError) throw refError;
+
+            // 2. Prepare and Save chess_selections
+            const selectionsToInsert = [];
+            for (const side of ['player', 'opponent']) {
+                for (const [type, path] of Object.entries(this.selections[side])) {
+                    const char = updatedChars.find(c => c.gltf_path === path);
+                    if (char) {
+                        selectionsToInsert.push({
+                            user_id: user.id,
+                            piece_type: type,
+                            character_id: char.id,
+                            is_opponent: side === 'opponent'
+                        });
+                    }
+                }
+            }
+
+            // Delete old selections for this user
+            const { error: delError } = await supabase
+                .from('chess_selections')
+                .delete()
+                .eq('user_id', user.id);
+
+            if (delError) throw delError;
+
+            // Insert new selections
+            if (selectionsToInsert.length > 0) {
+                const { error: insError } = await supabase
+                    .from('chess_selections')
+                    .insert(selectionsToInsert);
+                if (insError) throw insError;
+            }
+
+            alert("Todos los cambios guardados correctamente");
+            await this.loadData();
+        } catch (error) {
+            console.error("Error saving all:", error);
             alert("Error al guardar: " + error.message);
-        } else {
-            alert("Personaje guardado correctamente");
-            this.loadCharacters();
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         }
-    }
-
-    async syncFromSpirits() {
-        // En realidad ya lo hacemos en loadCharacters al mostrar todo lo de spirits
-        this.loadCharacters();
     }
 }
 
