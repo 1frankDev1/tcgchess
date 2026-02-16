@@ -2588,71 +2588,79 @@ th {
 
 .chess-hud-bento {
     position: fixed;
-    top: 20px;
-    left: 20px;
-    right: 20px;
-    display: grid;
-    grid-template-columns: 1fr 200px 1fr;
-    grid-template-rows: auto auto;
-    gap: 15px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     z-index: 1000;
     pointer-events: none;
-    max-width: 1400px;
-    margin: 0 auto;
 }
 
 .chess-hud-bento .bento-item {
+    position: absolute;
     pointer-events: auto;
-    background: rgba(20, 20, 25, 0.7);
-    backdrop-filter: blur(15px);
+    background: rgba(15, 15, 20, 0.5);
+    backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    padding: 15px;
+    border-radius: 15px;
+    padding: 10px 15px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
 }
 
 .player-info {
     justify-content: space-between;
 }
 
-.player-info.white { border-left: 4px solid #fff; }
-.player-info.black { border-left: 4px solid #444; }
+.player-info.white {
+    top: 15px;
+    left: 15px;
+    border-left: 4px solid #fff;
+}
+.player-info.black {
+    top: 15px;
+    right: 15px;
+    border-right: 4px solid #444;
+    align-items: flex-end;
+}
 
 .player-header {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-weight: 800;
-    font-size: 1.1rem;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
     color: #fff;
-    margin-bottom: 10px;
+    margin-bottom: 4px;
 }
 
-.player-header i { font-size: 1.4rem; color: var(--primary-color); }
+.player-header i { font-size: 1rem; color: var(--primary-color); }
 
 .captured-pieces {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    min-height: 30px;
+    gap: 3px;
+    min-height: 20px;
 }
 
 .captured-pieces img {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
 }
 
 .turn-indicator {
-    grid-column: 2;
-    grid-row: 1;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(58, 123, 213, 0.2)) !important;
-    border: 1px solid var(--primary-color) !important;
+    background: rgba(0, 210, 255, 0.15) !important;
+    border: 1px solid rgba(0, 210, 255, 0.4) !important;
+    min-width: 160px;
 }
 
 #turn-badge {
@@ -2660,17 +2668,17 @@ th {
 }
 
 #current-turn-display {
-    font-size: 1.2rem;
-    font-weight: 900;
+    font-size: 1rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     color: var(--primary-color);
-    text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
 }
 
 .game-controls {
-    grid-column: 1 / span 3;
-    grid-row: 2;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .controls-grid {
@@ -2681,19 +2689,19 @@ th {
 }
 
 .ctrl-btn {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     color: #fff;
-    padding: 10px 20px;
-    border-radius: 12px;
+    padding: 6px 12px;
+    border-radius: 8px;
     cursor: pointer;
     text-decoration: none;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     font-weight: 600;
-    transition: all 0.3s;
-    font-size: 0.9rem;
+    transition: all 0.2s;
+    font-size: 0.8rem;
 }
 
 .ctrl-btn:hover {
@@ -2728,46 +2736,39 @@ th {
 }
 
 /* Responsive Chess */
-@media (max-width: 968px) {
-    .chess-hud-bento {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto;
-    }
-    .turn-indicator {
-        grid-column: 1 / span 2;
-        grid-row: 1;
-    }
-    .player-info.white { grid-column: 1; grid-row: 2; }
-    .player-info.black { grid-column: 2; grid-row: 2; }
-    .game-controls { grid-column: 1 / span 2; grid-row: 3; }
+@media (max-width: 768px) {
+    .player-info.white { top: 10px; left: 10px; padding: 6px 10px; }
+    .player-info.black { top: 10px; right: 10px; padding: 6px 10px; }
+    .turn-indicator { top: auto; bottom: 85px; min-width: 140px; }
+    .game-controls { bottom: 15px; }
 }
 
 @media (max-width: 640px) {
-    .chess-hud-bento {
-        top: 10px;
-        left: 10px;
-        right: 10px;
-        gap: 10px;
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto auto auto;
+    .player-info.white, .player-info.black {
+        width: calc(50% - 12px);
+        max-width: 140px;
+        padding: 4px 8px;
     }
-    .player-info.white { grid-column: 1; grid-row: 1; }
-    .turn-indicator { grid-column: 1; grid-row: 2; }
-    .player-info.black { grid-column: 1; grid-row: 3; }
-    .game-controls { grid-column: 1; grid-row: 4; }
+    .player-info.black { border-right: none; border-left: 4px solid #444; align-items: flex-start; }
 
     .controls-grid {
-        flex-wrap: wrap;
-        gap: 8px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 5px;
     }
     .ctrl-btn {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        flex: 1 1 40%;
-        justify-content: center;
+        padding: 6px 4px;
+        font-size: 0.7rem;
+        flex-direction: column;
+        gap: 2px;
+        text-align: center;
     }
+    .ctrl-btn span { display: none; } /* Ocultar texto para iconos más limpios */
+    .ctrl-btn i { font-size: 1rem; }
+
     .player-header span { display: none; }
-    .player-header { justify-content: center; }
+    .player-header { justify-content: center; margin-bottom: 2px; }
+    .captured-pieces { justify-content: center; }
 }
 
 .input-group {

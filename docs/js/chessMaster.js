@@ -146,9 +146,9 @@ class Board {
 
     createBoard() {
         const geometry = new THREE.BoxGeometry(this.squareSize, 0.1, this.squareSize);
-        // Colores más amigables y modernos
-        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xf0d9b5 }); // Crema
-        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x48cae4 }); // Azul vibrante suave
+        // Colores Pastel - Soft Rose & Pale Blue
+        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xfce4ec });
+        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0xe1f5fe });
         for (let x = 0; x < this.size; x++) {
             for (let z = 0; z < this.size; z++) {
                 const material = ((x + z) % 2 === 0 ? lightMaterial : darkMaterial).clone();
@@ -358,10 +358,27 @@ class PieceManager {
     update(deltaTime) {
         this.pieces.forEach(piece => {
             if (piece.userData.targetPosition) {
-                piece.position.lerp(piece.userData.targetPosition, 10 * deltaTime);
-                if (piece.position.distanceTo(piece.userData.targetPosition) < 0.01) {
+                if (piece.userData.moveProgress === undefined) {
+                    piece.userData.moveProgress = 0;
+                    piece.userData.startPosition = piece.position.clone();
+                }
+
+                piece.userData.moveProgress += 3.5 * deltaTime; // Velocidad de movimiento
+                if (piece.userData.moveProgress >= 1) {
                     piece.position.copy(piece.userData.targetPosition);
                     delete piece.userData.targetPosition;
+                    delete piece.userData.moveProgress;
+                    delete piece.userData.startPosition;
+                } else {
+                    const progress = piece.userData.moveProgress;
+                    // Interpolación suave (Ease out quad)
+                    const t = progress * (2 - progress);
+
+                    piece.position.lerpVectors(piece.userData.startPosition, piece.userData.targetPosition, t);
+
+                    // Efecto de arco (Elevación en el eje Y)
+                    const arcHeight = 0.5;
+                    piece.position.y = (piece.userData.startPosition.y + arcHeight * Math.sin(progress * Math.PI));
                 }
             }
         });
