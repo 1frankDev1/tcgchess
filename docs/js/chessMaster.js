@@ -146,9 +146,9 @@ class Board {
 
     createBoard() {
         const geometry = new THREE.BoxGeometry(this.squareSize, 0.1, this.squareSize);
-        // Colores Pastel - Soft Rose & Pale Blue
-        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xfce4ec });
-        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0xe1f5fe });
+        // Colores Clásicos - Crema & Verde
+        const lightMaterial = new THREE.MeshStandardMaterial({ color: 0xeeeed2 });
+        const darkMaterial = new THREE.MeshStandardMaterial({ color: 0x769656 });
         for (let x = 0; x < this.size; x++) {
             for (let z = 0; z < this.size; z++) {
                 const material = ((x + z) % 2 === 0 ? lightMaterial : darkMaterial).clone();
@@ -180,13 +180,19 @@ class Board {
         const square = this.getSquareAt(gridX, gridZ);
         if (square) {
             if (!square.userData.originalColor) square.userData.originalColor = square.material.color.clone();
+            square.material.transparent = true;
+            square.material.opacity = 0.7;
             square.material.color.set(color);
         }
     }
 
     clearHighlights() {
         this.squares.forEach(square => {
-            if (square.userData.originalColor) square.material.color.copy(square.userData.originalColor);
+            if (square.userData.originalColor) {
+                square.material.color.copy(square.userData.originalColor);
+                square.material.transparent = false;
+                square.material.opacity = 1.0;
+            }
         });
     }
 }
@@ -213,6 +219,22 @@ class SceneManager {
         this.camera.lookAt(0, 0, 0);
         this.setupLights();
         this.setupResize();
+        this.is2D = false;
+    }
+
+    toggleViewMode() {
+        this.is2D = !this.is2D;
+        if (this.is2D) {
+            // Vista 2D (Cenital)
+            this.camera.position.set(0, 12, 0.1);
+            this.controls.enableRotate = false;
+        } else {
+            // Vista 3D (Perspectiva)
+            this.camera.position.set(0, 10, 10);
+            this.controls.enableRotate = true;
+        }
+        this.camera.lookAt(0, 0, 0);
+        this.controls.update();
     }
 
     setupLights() {
@@ -476,12 +498,13 @@ class Game {
 
     highlightValidMoves(fromX, fromZ) {
         this.board.clearHighlights();
-        this.board.highlightSquare(fromX, fromZ, 0x00ff00);
+        // Azul para la pieza seleccionada
+        this.board.highlightSquare(fromX, fromZ, 0x4488ff);
         for (let x = 0; x < 8; x++) {
             for (let z = 0; z < 8; z++) {
                 if (ChessRules.isValidMove(this.selectedPiece.userData, x, z, this.boardState)) {
-                    // Resaltar todos los movimientos válidos según el tipo de pieza
-                    this.board.highlightSquare(x, z, 0xffff00);
+                    // Amarillo suave para movimientos posibles
+                    this.board.highlightSquare(x, z, 0xffffaa);
                 }
             }
         }
@@ -613,29 +636,27 @@ class InputHandler {
             const gridX = obj.userData.gridX;
             const gridZ = obj.userData.gridZ;
 
-            // Si hay una pieza seleccionada y clicamos sobre ella, activamos rotación
-            if (this.game.selectedPiece && gridX === this.game.selectedPiece.userData.gridX && gridZ === this.game.selectedPiece.userData.gridZ) {
-                this.isRotating = true;
-                this.lastMouseX = event.clientX;
-                this.sceneManager.controls.enabled = false;
+            // Prioridad 1: Si es una pieza aliada, seleccionarla (o rotarla si ya estaba seleccionada)
+            const clickedPiece = this.game.pieceManager.getPieceAt(gridX, gridZ);
+            if (clickedPiece && clickedPiece.userData.color === this.game.turn) {
+                if (this.game.selectedPiece === clickedPiece) {
+                    this.isRotating = true;
+                    this.lastMouseX = event.clientX;
+                    this.sceneManager.controls.enabled = false;
+                } else {
+                    this.game.selectPiece(gridX, gridZ);
+                }
                 return;
             }
 
+            // Prioridad 2: Si ya hay una pieza seleccionada, intentar moverla al destino
             if (this.game.selectedPiece) {
-                // Intentar mover la pieza
                 const moved = await this.game.moveSelectedPiece(gridX, gridZ);
                 if (!moved) {
-                    // Si no se pudo mover, intentar seleccionar una pieza aliada en esa posición
-                    const selected = this.game.selectPiece(gridX, gridZ);
-                    if (!selected) {
-                        // Si tampoco se pudo seleccionar (clic en vacío o enemigo inválido), deseleccionar
-                        this.game.selectedPiece = null;
-                        this.board.clearHighlights();
-                    }
+                    // Si el movimiento no fue válido y no era un aliado (ya manejado arriba), deseleccionar
+                    this.game.selectedPiece = null;
+                    this.board.clearHighlights();
                 }
-            } else {
-                // Intentar seleccionar
-                this.game.selectPiece(gridX, gridZ);
             }
         } else {
             // Clic fuera del tablero deselecciona
@@ -657,6 +678,7 @@ class Main {
         this.usernameInput = document.getElementById('main-username');
         this.passwordInput = document.getElementById('main-password');
         document.getElementById('btn-reset').addEventListener('click', () => this.handleReset());
+        document.getElementById('btn-view-mode').addEventListener('click', () => this.sceneManager.toggleViewMode());
         document.getElementById('btn-login-main').addEventListener('click', () => this.handleLogin());
         document.getElementById('btn-logout-main').addEventListener('click', () => this.handleLogout());
     }
