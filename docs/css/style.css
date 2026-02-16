@@ -2579,3 +2579,210 @@ th {
     text-decoration: none;
     font-weight: 600;
 }
+
+/* --- New Chess Modern UI --- */
+.chess-body {
+    background: #000;
+    overflow: hidden;
+}
+
+.chess-hud-bento {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    display: grid;
+    grid-template-columns: 1fr 200px 1fr;
+    grid-template-rows: auto auto;
+    gap: 15px;
+    z-index: 1000;
+    pointer-events: none;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.chess-hud-bento .bento-item {
+    pointer-events: auto;
+    background: rgba(20, 20, 25, 0.7);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.player-info {
+    justify-content: space-between;
+}
+
+.player-info.white { border-left: 4px solid #fff; }
+.player-info.black { border-left: 4px solid #444; }
+
+.player-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.player-header i { font-size: 1.4rem; color: var(--primary-color); }
+
+.captured-pieces {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    min-height: 30px;
+}
+
+.captured-pieces img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+.turn-indicator {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(58, 123, 213, 0.2)) !important;
+    border: 1px solid var(--primary-color) !important;
+}
+
+#turn-badge {
+    text-align: center;
+}
+
+#current-turn-display {
+    font-size: 1.2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(0, 210, 255, 0.5);
+}
+
+.game-controls {
+    grid-column: 1 / span 3;
+    grid-row: 2;
+}
+
+.controls-grid {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 100%;
+}
+
+.ctrl-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    transition: all 0.3s;
+    font-size: 0.9rem;
+}
+
+.ctrl-btn:hover {
+    background: var(--primary-color);
+    color: #000;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
+}
+
+.ctrl-btn i { font-size: 1.1rem; }
+
+/* Modal & Popups */
+.glass-morphism {
+    background: rgba(20, 20, 25, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    padding: 40px;
+    border-radius: 30px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+#modal-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: var(--primary-color);
+}
+
+/* Responsive Chess */
+@media (max-width: 968px) {
+    .chess-hud-bento {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto auto;
+    }
+    .turn-indicator {
+        grid-column: 1 / span 2;
+        grid-row: 1;
+    }
+    .player-info.white { grid-column: 1; grid-row: 2; }
+    .player-info.black { grid-column: 2; grid-row: 2; }
+    .game-controls { grid-column: 1 / span 2; grid-row: 3; }
+}
+
+@media (max-width: 640px) {
+    .chess-hud-bento {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        gap: 10px;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+    }
+    .player-info.white { grid-column: 1; grid-row: 1; }
+    .turn-indicator { grid-column: 1; grid-row: 2; }
+    .player-info.black { grid-column: 1; grid-row: 3; }
+    .game-controls { grid-column: 1; grid-row: 4; }
+
+    .controls-grid {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .ctrl-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        flex: 1 1 40%;
+        justify-content: center;
+    }
+    .player-header span { display: none; }
+    .player-header { justify-content: center; }
+}
+
+.input-group {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.input-group i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.input-group input {
+    padding-left: 45px !important;
+}
