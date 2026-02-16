@@ -3,44 +3,79 @@
 <head>    
     <meta charset="UTF-8">    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    
-    <title>Carpeta TCG Dual - Visor</title>    
+    <title>TCG Dual - La plataforma definitiva para tus cartas</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>    
-<body class="public-body">
-    <header class="public-header">
-        <h1>TCG Dual</h1>
-        <p>Tu plataforma para coleccionar y mostrar tus cartas TCG de manera profesional.</p>
-        <div style="margin-top: 25px; display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-            <a href="admin.html" class="btn"><i class="fas fa-user-lock"></i> Panel de Control</a>
-            <a href="public.html?store=TCG%20Dual" class="btn btn-secondary"><i class="fas fa-book-open"></i> Ver Demo</a>
+<body class="public-body landing-page">
+    <header class="main-nav">
+        <div class="nav-container">
+            <div class="logo">TCG <span>Dual</span></div>
+            <div class="nav-actions">
+                <a href="admin.html" class="btn-minimal">Acceso Clientes</a>
+            </div>
         </div>
     </header>
 
-    <main class="landing-container" style="max-width: 1000px; margin: 0 auto; padding: 60px 20px; color: white;">
-        <section style="text-align: center; margin-bottom: 80px;">
-            <h2 style="font-size: 2.5rem; margin-bottom: 20px; color: #00d2ff;">Organiza tu Colección</h2>
-            <p style="font-size: 1.2rem; opacity: 0.8; line-height: 1.6; max-width: 800px; margin: 0 auto;">
-                TCG Dual es la herramienta definitiva para coleccionistas y tiendas de cartas. Crea álbumes digitales interactivos que tus clientes y amigos pueden hojear como si fueran reales.
-            </p>
-        </section>
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">Tus cartas, elevadas al <span>siguiente nivel</span></h1>
+            <p class="hero-subtitle">La forma más elegante y sencilla de organizar, mostrar y compartir tu colección TCG con el mundo.</p>
+            <div class="hero-cta">
+                <a href="#features" class="btn-primary">Explorar Funciones</a>
+                <a href="#stores" class="btn-outline">Ver Tiendas</a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="glass-card-preview">
+                <!-- Visual placeholder for modern look -->
+                <div class="preview-inner"></div>
+            </div>
+        </div>
+    </section>
 
-        <div class="features-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px;">
-            <div class="feature-card" style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                <i class="fas fa-magic" style="font-size: 3rem; color: #00d2ff; margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 15px;">Efecto de Hoja Real</h3>
-                <p style="opacity: 0.7;">Tecnología Turn.js para una experiencia de navegación fluida y natural en tus álbumes.</p>
+    <section id="stores" class="stores-section">
+        <h2 class="section-title">Tiendas que confían en <span>nosotros</span></h2>
+        <div class="swiper logos-swiper">
+            <div class="swiper-wrapper" id="stores-slider-wrapper">
+                <!-- Stores will be loaded here -->
             </div>
-            <div class="feature-card" style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                <i class="fas fa-database" style="font-size: 3rem; color: #00d2ff; margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 15px;">Gestión en la Nube</h3>
-                <p style="opacity: 0.7;">Tus datos siempre seguros y accesibles desde cualquier lugar gracias a Supabase.</p>
+            <div class="swiper-pagination"></div>
+        </div>
+    </section>
+
+    <main id="features" class="landing-container">
+        <h2 class="section-title">Visualización <span>Inteligente</span></h2>
+        <div class="bento-grid">
+            <div class="bento-item large">
+                <div class="bento-content">
+                    <i class="fas fa-eye"></i>
+                    <h3>Visualización Inmersiva</h3>
+                    <p>Disfruta de tus cartas con un detalle asombroso. Nuestra plataforma está optimizada para que cada detalle de tus cartas brille, facilitando la navegación y el disfrute de tu colección.</p>
+                </div>
             </div>
-            <div class="feature-card" style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                <i class="fas fa-mobile-alt" style="font-size: 3rem; color: #00d2ff; margin-bottom: 20px;"></i>
-                <h3 style="margin-bottom: 15px;">Totalmente Responsive</h3>
-                <p style="opacity: 0.7;">Diseñado para verse perfecto tanto en computadoras de escritorio como en dispositivos móviles.</p>
+            <div class="bento-item">
+                <div class="bento-content">
+                    <i class="fas fa-search"></i>
+                    <h3>Búsqueda Avanzada</h3>
+                    <p>Encuentra cualquier carta en segundos. Filtra por nombre, expansión o rareza de forma instantánea.</p>
+                </div>
+            </div>
+            <div class="bento-item">
+                <div class="bento-content">
+                    <i class="fas fa-share-alt"></i>
+                    <h3>Comparte tu Pasión</h3>
+                    <p>Genera enlaces públicos personalizados para mostrar tu inventario a clientes o amigos de forma profesional.</p>
+                </div>
+            </div>
+            <div class="bento-item medium">
+                <div class="bento-content">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Experiencia Multiplataforma</h3>
+                    <p>Accede a tu colección desde cualquier dispositivo. Diseñado para ofrecer la mejor experiencia tanto en móvil como en escritorio, sin complicaciones.</p>
+                </div>
             </div>
         </div>
 
@@ -55,9 +90,36 @@
         &copy; 2024 TCG Dual - Todos los derechos reservados.
     </footer>
     
+    <!-- Business Card Modal -->
+    <div id="business-modal" class="business-overlay">
+        <div class="business-card-modal">
+            <span class="close-business-modal">&times;</span>
+            <div class="modal-header">
+                <img id="modal-business-logo" src="" alt="Logo">
+                <h2 id="modal-business-name">Nombre del Negocio</h2>
+            </div>
+            <div class="modal-body">
+                <div class="info-row">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span id="modal-business-address">Dirección no disponible</span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-clock"></i>
+                    <span id="modal-business-hours">Horario no disponible</span>
+                </div>
+                <div class="info-row">
+                    <i class="fas fa-external-link-alt"></i>
+                    <a id="modal-business-link" href="#" target="_blank">Visitar Tienda Pública</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Librerías -->    
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="js/landing.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </body>    
 </html>
