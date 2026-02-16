@@ -204,7 +204,7 @@ class SceneManager {
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x111111);
         this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        this.camera.position.set(0, 10, 10);
+        this.camera.position.set(-10, 10, 0);
         this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -225,12 +225,14 @@ class SceneManager {
     toggleViewMode() {
         this.is2D = !this.is2D;
         if (this.is2D) {
-            // Vista 2D (Cenital)
-            this.camera.position.set(0, 12, 0.1);
+            // Vista 2D (Cenital) - Blancas abajo
+            this.camera.position.set(-0.1, 12, 0);
+            this.camera.up.set(1, 0, 0);
             this.controls.enableRotate = false;
         } else {
-            // Vista 3D (Perspectiva)
-            this.camera.position.set(0, 10, 10);
+            // Vista 3D (Perspectiva) - Blancas abajo
+            this.camera.position.set(-10, 10, 0);
+            this.camera.up.set(0, 1, 0);
             this.controls.enableRotate = true;
         }
         this.camera.lookAt(0, 0, 0);
@@ -362,6 +364,14 @@ class PieceManager {
         const info = this.characterInfo.get(`${type}_${color}`);
         const piece = originalModel.clone();
         piece.position.set(position.x, 0, position.z);
+
+        // Orientar piezas para que se miren (Blancas hacia +X, Negras hacia -X)
+        if (color === 'white') {
+            piece.rotation.y = Math.PI / 2;
+        } else {
+            piece.rotation.y = -Math.PI / 2;
+        }
+
         piece.userData = { type, color, gridX: position.gridX, gridZ: position.gridZ, characterName: info.name, classification: info.classification };
         this.scene.add(piece);
         this.pieces.push(piece);
