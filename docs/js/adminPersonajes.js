@@ -202,13 +202,15 @@ class AdminPersonajes {
             const user = getCurrentUser();
 
             // 1. Prepare and Save chess_characters
-            const toUpsert = this.chessChars.map(c => {
+            const toUpdate = [];
+            const toInsert = [];
+
+            this.chessChars.forEach(c => {
                 const charData = {
                     name: c.name,
                     gltf_path: c.gltf_path,
                     piece_type: c.piece_type || "Peón"
                 };
-                if (c.id) charData.id = c.id;
 
                 // Ensure piece_type matches whatever is currently selected for this spirit
                 for (const side of ['player', 'opponent']) {
@@ -218,14 +220,29 @@ class AdminPersonajes {
                         }
                     }
                 }
-                return charData;
+
+                if (c.id) {
+                    charData.id = c.id;
+                    toUpdate.push(charData);
+                } else {
+                    toInsert.push(charData);
+                }
             });
 
-            const { error: upsError } = await supabase
-                .from('chess_characters')
-                .upsert(toUpsert);
+            // Perform updates and inserts separately to avoid mixed-key issues with PostgREST
+            if (toUpdate.length > 0) {
+                const { error: upsError } = await supabase
+                    .from('chess_characters')
+                    .upsert(toUpdate);
+                if (upsError) throw upsError;
+            }
 
-            if (upsError) throw upsError;
+            if (toInsert.length > 0) {
+                const { error: insError } = await supabase
+                    .from('chess_characters')
+                    .insert(toInsert);
+                if (insError) throw insError;
+            }
 
             // Re-fetch characters to get IDs for new ones
             const { data: updatedChars, error: refError } = await supabase
